@@ -1,0 +1,23 @@
+services:
+  rubezh:
+    build: .
+    image: rubezh:latest
+    container_name: rubezh
+    ports:
+      - "8555:8555"
+    volumes:
+      # Настройки и правила (переживают пересоздание контейнера)
+      - rubezh-data:/data
+      # Вход по SSH-ключу: примонтируйте свои ключи только на чтение.
+      # Linux/macOS — строка ниже работает как есть.
+      # Windows (PowerShell): замените на  ${USERPROFILE}\.ssh:/root/.ssh:ro
+      - ${HOME:-/root}/.ssh:/root/.ssh:ro
+    environment:
+      # Демо-режим без реального SSH: раскомментируйте.
+      # - RUBEZH_DEMO=1
+      # Часовой пояс для логов (необязательно).
+      - TZ=Europe/Moscow
+    restart: unless-stopped
+
+volumes:
+  rubezh-data:

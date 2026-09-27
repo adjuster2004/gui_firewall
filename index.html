@@ -1,0 +1,1008 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+</head>
+<body>
+<title>Рубеж</title>
+<style>
+  :root{
+    --ground:#eef1f6; --surface:#ffffff; --panel:#f4f6fa; --panel-2:#e9edf4;
+    --ink:#141c28; --ink-2:#33414f; --muted:#64748b; --faint:#8b97a6;
+    --border:#dde3ec; --border-strong:#c9d2df;
+    --accent:#2f62e6; --accent-ink:#ffffff; --accent-soft:#e5ecfd;
+    --ok:#1a8f52; --ok-soft:#e0f3e8;
+    --danger:#cf3b3b; --danger-soft:#fbe6e6;
+    --warn:#c9820f; --warn-soft:#f8ecd6;
+    --shadow:0 1px 2px rgba(17,27,41,.06),0 6px 20px rgba(17,27,41,.06);
+    --shadow-lift:0 8px 30px rgba(17,27,41,.18);
+    --r:10px; --r-sm:7px;
+    --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --sans:"IBM Plex Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  :root:not([data-theme="light"]){ color-scheme:light; }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      color-scheme:dark;
+      --ground:#0d131c; --surface:#141d29; --panel:#18222f; --panel-2:#1f2b3a;
+      --ink:#e7edf5; --ink-2:#c1cddb; --muted:#8798ab; --faint:#63748a;
+      --border:#25323f; --border-strong:#31404f;
+      --accent:#5b8bff; --accent-ink:#0b1220; --accent-soft:#1a2740;
+      --ok:#39c07d; --ok-soft:#132a20;
+      --danger:#f0625f; --danger-soft:#2e1717;
+      --warn:#e0a53a; --warn-soft:#2c2210;
+      --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 26px rgba(0,0,0,.36);
+      --shadow-lift:0 10px 34px rgba(0,0,0,.55);
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme:dark;
+    --ground:#0d131c; --surface:#141d29; --panel:#18222f; --panel-2:#1f2b3a;
+    --ink:#e7edf5; --ink-2:#c1cddb; --muted:#8798ab; --faint:#63748a;
+    --border:#25323f; --border-strong:#31404f;
+    --accent:#5b8bff; --accent-ink:#0b1220; --accent-soft:#1a2740;
+    --ok:#39c07d; --ok-soft:#132a20;
+    --danger:#f0625f; --danger-soft:#2e1717;
+    --warn:#e0a53a; --warn-soft:#2c2210;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 26px rgba(0,0,0,.36);
+    --shadow-lift:0 10px 34px rgba(0,0,0,.55);
+  }
+
+  *{box-sizing:border-box}
+  [hidden]{display:none!important}
+  html,body{height:100%}
+  body{
+    margin:0;background:var(--ground);color:var(--ink);
+    font-family:var(--sans);font-size:14px;line-height:1.45;
+    -webkit-font-smoothing:antialiased;
+  }
+  .app{display:flex;flex-direction:column;height:100%;min-height:100%}
+
+  /* ---------- top bar ---------- */
+  .topbar{
+    display:flex;align-items:center;gap:16px;
+    padding:0 18px;height:56px;flex:0 0 auto;
+    background:var(--surface);border-bottom:1px solid var(--border);
+    position:sticky;top:env(safe-area-inset-top,0px);z-index:30;
+  }
+  .brand{display:flex;align-items:center;gap:10px;font-weight:600;letter-spacing:.2px}
+  .brand .mark{
+    width:30px;height:30px;border-radius:8px;flex:0 0 auto;
+    background:linear-gradient(150deg,var(--accent),#7aa2ff);
+    display:grid;place-items:center;color:#fff;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);
+  }
+  .brand .mark svg{width:17px;height:17px;display:block}
+  .brand .name{font-size:16px}
+  .brand .tag{
+    font:600 10px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;
+    color:var(--muted);border:1px solid var(--border);border-radius:5px;
+    padding:4px 6px;margin-left:2px;
+  }
+  .topbar .spacer{flex:1}
+  .conn{
+    display:flex;align-items:center;gap:14px;
+  }
+  .conn-pill{
+    display:flex;align-items:center;gap:8px;
+    background:var(--panel);border:1px solid var(--border);
+    border-radius:999px;padding:5px 12px 5px 10px;font-size:12.5px;
+  }
+  .conn-pill .host{font-family:var(--mono);color:var(--ink-2);font-size:12px}
+  .dot{width:8px;height:8px;border-radius:50%;flex:0 0 auto}
+  .dot.live{background:var(--ok);box-shadow:0 0 0 3px var(--ok-soft)}
+  .dot.off{background:var(--faint);box-shadow:0 0 0 3px var(--border)}
+  .fw-badge{
+    display:inline-flex;align-items:center;gap:6px;font-size:11.5px;
+    font-family:var(--mono);color:var(--accent);
+    background:var(--accent-soft);border:1px solid transparent;
+    padding:4px 9px;border-radius:6px;
+  }
+  .icon-btn{
+    width:34px;height:34px;border-radius:8px;border:1px solid var(--border);
+    background:var(--panel);color:var(--ink-2);cursor:pointer;
+    display:grid;place-items:center;transition:.15s;
+  }
+  .icon-btn:hover{background:var(--panel-2);color:var(--ink)}
+  .icon-btn svg{width:17px;height:17px}
+
+  /* ---------- shell ---------- */
+  .shell{display:flex;flex:1;min-height:0}
+  .side{
+    width:210px;flex:0 0 auto;background:var(--surface);
+    border-right:1px solid var(--border);padding:14px 10px;
+    display:flex;flex-direction:column;gap:4px;
+  }
+  .side .lbl{
+    font:600 10.5px/1 var(--sans);letter-spacing:.13em;text-transform:uppercase;
+    color:var(--faint);padding:8px 10px 6px;
+  }
+  .nav{
+    display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:8px;
+    color:var(--ink-2);cursor:pointer;font-weight:500;border:1px solid transparent;
+    transition:.14s;user-select:none;
+  }
+  .nav svg{width:18px;height:18px;flex:0 0 auto;opacity:.85}
+  .nav:hover{background:var(--panel)}
+  .nav.active{background:var(--accent-soft);color:var(--accent);border-color:transparent;font-weight:600}
+  .nav.active svg{opacity:1}
+  .side .foot{margin-top:auto;padding:10px;color:var(--faint);font-size:11.5px;line-height:1.5}
+
+  .main{flex:1;min-width:0;overflow:auto;padding:22px 24px 60px}
+  .view{max-width:1120px;margin:0 auto}
+  .view[hidden]{display:none!important}
+
+  .page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:18px;flex-wrap:wrap}
+  .page-head h1{font-size:21px;font-weight:600;margin:0;letter-spacing:-.01em}
+  .page-head p{margin:4px 0 0;color:var(--muted);font-size:13px}
+
+  /* ---------- chain tabs ---------- */
+  .toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+  .seg{display:inline-flex;background:var(--panel);border:1px solid var(--border);border-radius:9px;padding:3px}
+  .seg button{
+    border:0;background:transparent;color:var(--muted);cursor:pointer;
+    font:600 12.5px/1 var(--sans);padding:7px 14px;border-radius:6px;
+    display:flex;align-items:center;gap:7px;transition:.14s;
+  }
+  .seg button .cnt{
+    font-family:var(--mono);font-size:10.5px;font-weight:600;
+    background:var(--panel-2);color:var(--muted);border-radius:5px;padding:2px 5px;line-height:1;
+  }
+  .seg button.on{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+  .seg button.on .cnt{background:var(--accent-soft);color:var(--accent)}
+  .toolbar .spacer{flex:1}
+  .search{position:relative}
+  .search svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--faint)}
+  .search input{
+    width:210px;max-width:48vw;padding:8px 10px 8px 35px;border-radius:8px;
+    border:1px solid var(--border);background:var(--surface);color:var(--ink);
+    font-family:var(--sans);font-size:13px;
+  }
+  .search input:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:transparent}
+  .policy{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:7px}
+  .policy b{font-family:var(--mono);color:var(--danger);font-weight:600}
+
+  .btn{
+    display:inline-flex;align-items:center;gap:7px;cursor:pointer;
+    font:600 13px/1 var(--sans);padding:9px 14px;border-radius:8px;
+    border:1px solid var(--border);background:var(--surface);color:var(--ink);transition:.14s;
+  }
+  .btn svg{width:16px;height:16px}
+  .btn:hover{background:var(--panel);border-color:var(--border-strong)}
+  .btn.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+  .btn.primary:hover{filter:brightness(1.06)}
+  .btn.ghost{background:transparent;border-color:transparent;color:var(--muted)}
+  .btn.ghost:hover{background:var(--panel);color:var(--ink)}
+  .btn.sm{padding:7px 11px;font-size:12px}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+
+  /* ---------- dirty banner ---------- */
+  .dirty{
+    display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+    background:var(--warn-soft);border:1px solid color-mix(in srgb,var(--warn) 40%,transparent);
+    border-radius:10px;padding:10px 14px;margin-bottom:14px;
+  }
+  .dirty .txt{font-size:13px;color:var(--ink);display:flex;align-items:center;gap:9px}
+  .dirty .txt b{font-family:var(--mono)}
+  .dirty svg{width:17px;height:17px;color:var(--warn);flex:0 0 auto}
+  .dirty .spacer{flex:1}
+
+  /* ---------- rules table (grid) ---------- */
+  .table-wrap{border:1px solid var(--border);border-radius:12px;background:var(--surface);box-shadow:var(--shadow);overflow:hidden}
+  .table-scroll{overflow-x:auto}
+  .grid-cols{
+    display:grid;
+    grid-template-columns:38px 46px minmax(150px,1.4fr) minmax(120px,1fr) minmax(120px,1fr) 96px 104px 70px 78px;
+    align-items:center;min-width:820px;
+  }
+  .thead{
+    background:var(--panel);border-bottom:1px solid var(--border);
+    font:600 10.5px/1 var(--sans);letter-spacing:.09em;text-transform:uppercase;color:var(--muted);
+  }
+  .thead > div{padding:11px 12px}
+  .thead .c-num,.thead .c-tgl,.thead .c-act{text-align:center}
+  .rows .rule-row{
+    border-bottom:1px solid var(--border);background:var(--surface);
+    transition:background .12s;position:relative;
+  }
+  .rows .rule-row:last-child{border-bottom:0}
+  .rule-row:hover{background:var(--panel)}
+  .rule-row > div{padding:12px;min-width:0}
+  .rule-row.dragging{
+    background:var(--surface);box-shadow:var(--shadow-lift);
+    border-radius:8px;border-bottom-color:transparent;z-index:5;
+    outline:1px solid var(--accent);
+  }
+  .rule-row.disabled{opacity:.55}
+  .rule-row.disabled .r-name{text-decoration:line-through;text-decoration-color:var(--faint)}
+
+  .c-grip{display:flex;justify-content:center}
+  .grip{
+    width:24px;height:28px;border-radius:6px;cursor:grab;color:var(--faint);
+    display:grid;place-items:center;touch-action:none;
+  }
+  .grip:hover{background:var(--panel-2);color:var(--ink-2)}
+  .grip:active{cursor:grabbing}
+  .grip svg{width:15px;height:15px;pointer-events:none}
+
+  .c-num{text-align:center}
+  .prio{font-family:var(--mono);font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+  .r-name{font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .r-note{font-size:11.5px;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+
+  .addr{font-family:var(--mono);font-size:12px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .addr.any{color:var(--faint)}
+
+  .chip{
+    display:inline-flex;align-items:center;gap:5px;font:600 11px/1 var(--mono);
+    padding:4px 8px;border-radius:6px;text-transform:uppercase;letter-spacing:.03em;
+    background:var(--panel-2);color:var(--ink-2);
+  }
+  .tgt{display:inline-flex;align-items:center;gap:6px;font:600 11px/1 var(--mono);padding:5px 9px;border-radius:6px;letter-spacing:.03em}
+  .tgt.accept{background:var(--ok-soft);color:var(--ok)}
+  .tgt.drop{background:var(--danger-soft);color:var(--danger)}
+  .tgt.reject{background:var(--warn-soft);color:var(--warn)}
+
+  .c-tgl{display:flex;justify-content:center}
+  .switch{position:relative;width:38px;height:22px;flex:0 0 auto;cursor:pointer}
+  .switch input{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer}
+  .track{position:absolute;inset:0;background:var(--border-strong);border-radius:999px;transition:.16s}
+  .knob{position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.3);transition:.16s}
+  .switch input:checked ~ .track{background:var(--ok)}
+  .switch input:checked ~ .knob{transform:translateX(16px)}
+  .switch input:focus-visible ~ .track{outline:2px solid var(--accent);outline-offset:2px}
+
+  .c-act{display:flex;justify-content:center;gap:2px}
+  .row-btn{width:28px;height:28px;border-radius:6px;border:0;background:transparent;color:var(--faint);cursor:pointer;display:grid;place-items:center}
+  .row-btn:hover{background:var(--panel-2);color:var(--ink)}
+  .row-btn.del:hover{background:var(--danger-soft);color:var(--danger)}
+  .row-btn svg{width:15px;height:15px}
+
+  .empty{padding:46px 20px;text-align:center;color:var(--muted)}
+  .empty svg{width:34px;height:34px;color:var(--faint);margin-bottom:8px}
+
+  /* ---------- settings ---------- */
+  .cards{display:flex;flex-direction:column;gap:16px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);overflow:hidden}
+  .card > header{display:flex;align-items:center;gap:11px;padding:15px 18px;border-bottom:1px solid var(--border)}
+  .card > header .ci{width:32px;height:32px;border-radius:8px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:0 0 auto}
+  .card > header .ci svg{width:17px;height:17px}
+  .card > header h2{font-size:14.5px;margin:0;font-weight:600}
+  .card > header p{margin:1px 0 0;font-size:12px;color:var(--muted)}
+  .card .body{padding:18px}
+
+  .field{display:flex;flex-direction:column;gap:6px;margin-bottom:15px}
+  .field:last-child{margin-bottom:0}
+  .field label{font-size:12.5px;font-weight:600;color:var(--ink-2)}
+  .field .hint{font-size:11.5px;color:var(--faint);font-weight:400}
+  .row2{display:grid;grid-template-columns:1fr 130px;gap:14px}
+  input[type=text],input[type=password],input[type=number],select{
+    width:100%;padding:9px 11px;border-radius:8px;border:1px solid var(--border);
+    background:var(--panel);color:var(--ink);font-family:var(--sans);font-size:13px;
+  }
+  input.mono{font-family:var(--mono)}
+  input:focus,select:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:transparent;background:var(--surface)}
+  .segsm{display:inline-flex;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:3px;width:fit-content}
+  .segsm button{border:0;background:transparent;color:var(--muted);cursor:pointer;font:600 12px/1 var(--sans);padding:7px 13px;border-radius:6px}
+  .segsm button.on{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+
+  .toggle-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:11px 0;border-top:1px solid var(--border)}
+  .toggle-row:first-child{border-top:0}
+  .toggle-row .t-txt strong{display:block;font-size:13px}
+  .toggle-row .t-txt span{font-size:11.5px;color:var(--muted)}
+
+  /* detection list */
+  .detect{display:flex;flex-direction:column;gap:8px}
+  .det-item{display:flex;align-items:center;gap:12px;padding:11px 13px;border:1px solid var(--border);border-radius:9px;background:var(--panel)}
+  .det-item.found{border-color:var(--accent);background:var(--accent-soft)}
+  .det-item .di-ic{width:28px;height:28px;border-radius:7px;background:var(--panel-2);display:grid;place-items:center;color:var(--muted);flex:0 0 auto}
+  .det-item.found .di-ic{background:var(--accent);color:#fff}
+  .det-item .di-ic svg{width:15px;height:15px}
+  .det-item .di-main{flex:1;min-width:0}
+  .det-item .di-main .n{font-weight:600;font-size:13px;display:flex;align-items:center;gap:8px}
+  .det-item .di-main .d{font-size:11.5px;color:var(--muted);font-family:var(--mono)}
+  .det-state{font:600 10.5px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;padding:4px 8px;border-radius:6px;background:var(--panel-2);color:var(--faint)}
+  .det-item.found .det-state{background:var(--accent);color:#fff}
+
+  .card .actions{display:flex;gap:10px;align-items:center;padding:14px 18px;border-top:1px solid var(--border);background:var(--panel)}
+  .card .actions .spacer{flex:1}
+  .saved-note{font-size:12px;color:var(--ok);display:flex;align-items:center;gap:6px;opacity:0;transition:.2s}
+  .saved-note.show{opacity:1}
+  .saved-note svg{width:15px;height:15px}
+
+  /* ---------- modal ---------- */
+  .overlay{position:fixed;inset:0;background:rgba(10,16,24,.5);backdrop-filter:blur(2px);display:none;align-items:center;justify-content:center;z-index:60;padding:18px}
+  .overlay.show{display:flex}
+  .modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow-lift);width:100%;max-width:520px;max-height:90vh;overflow:auto}
+  .modal > header{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--border)}
+  .modal > header h3{margin:0;font-size:15px;font-weight:600}
+  .modal .mbody{padding:18px}
+  .modal .mfoot{display:flex;gap:10px;justify-content:flex-end;padding:14px 18px;border-top:1px solid var(--border);background:var(--panel)}
+  .cmd-pre{
+    margin:0;background:#0d131c;color:#d7e2f0;border-radius:9px;padding:14px 15px;
+    font-family:var(--mono);font-size:12px;line-height:1.7;overflow-x:auto;white-space:pre;
+    border:1px solid #1d2a38;
+  }
+  .cmd-pre .cm{color:#5f7085}
+  .cmd-pre .fl{color:#7aa2ff}
+  .cmd-pre .tg-a{color:#39c07d}
+  .cmd-pre .tg-d{color:#f0625f}
+
+  /* ---------- toast ---------- */
+  .toast{
+    position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);
+    background:var(--ink);color:var(--ground);padding:11px 18px;border-radius:10px;
+    font-size:13px;font-weight:500;box-shadow:var(--shadow-lift);z-index:80;
+    opacity:0;pointer-events:none;transition:.22s;display:flex;align-items:center;gap:9px;
+  }
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+  .toast svg{width:16px;height:16px;color:var(--ok)}
+
+  @media (max-width:760px){
+    .side{width:60px;padding:12px 8px}
+    .side .lbl,.side .foot,.nav span{display:none}
+    .nav{justify-content:center;padding:11px}
+    .brand .tag{display:none}
+    .conn .host-txt{display:none}
+    .main{padding:16px 14px 60px}
+  }
+  @media (max-width:520px){
+    .conn-pill .host{max-width:96px;overflow:hidden;text-overflow:ellipsis}
+    .search input{width:150px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="app">
+  <!-- ===== TOP BAR ===== -->
+  <div class="topbar">
+    <div class="brand">
+      <span class="mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M12 2.5 4 5.5v6c0 4.4 3.1 8.2 8 10 4.9-1.8 8-5.6 8-10v-6L12 2.5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+      <span class="name">Рубеж</span>
+      <span class="tag">Firewall</span>
+    </div>
+    <div class="spacer"></div>
+    <div class="conn">
+      <span class="fw-badge" id="fwBadge">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        iptables (legacy)
+      </span>
+      <span class="conn-pill">
+        <span class="dot live" id="connDot"></span>
+        <span class="host" id="connHost">gw-01 · 192.0.2.10</span>
+      </span>
+    </div>
+    <button class="icon-btn" id="themeBtn" title="Сменить тему" aria-label="Сменить тему">
+      <svg id="themeIcon" viewBox="0 0 24 24" fill="none"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>
+    </button>
+  </div>
+
+  <!-- ===== SHELL ===== -->
+  <div class="shell">
+    <aside class="side">
+      <div class="lbl">Меню</div>
+      <div class="nav active" data-view="rules">
+        <svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="4.5" width="17" height="4" rx="1.4" stroke="currentColor" stroke-width="1.7"/><rect x="3.5" y="10" width="17" height="4" rx="1.4" stroke="currentColor" stroke-width="1.7"/><rect x="3.5" y="15.5" width="17" height="4" rx="1.4" stroke="currentColor" stroke-width="1.7"/></svg>
+        <span>Правила</span>
+      </div>
+      <div class="nav" data-view="settings">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" stroke="currentColor" stroke-width="1.7"/><path d="M19.4 13a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V19a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 7 17.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0-1.1-2.7H3a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 4.7 7l-.1-.1A2 2 0 1 1 7.4 4.1l.1.1a1.6 1.6 0 0 0 1.8.3H9.4a1.6 1.6 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 2.7 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        <span>Настройки</span>
+      </div>
+      <div class="foot">
+        Прототип интерфейса.<br>Данные демонстрационные.
+      </div>
+    </aside>
+
+    <main class="main">
+      <!-- ===== RULES VIEW ===== -->
+      <section class="view" id="view-rules">
+        <div class="page-head">
+          <div>
+            <h1>Правила фаервола</h1>
+            <p>Перетащите строку за <span style="font-family:var(--mono)">⠿</span>, чтобы изменить приоритет. Правила применяются сверху вниз.</p>
+          </div>
+          <button class="btn primary" id="addBtn">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            Добавить правило
+          </button>
+        </div>
+
+        <div class="toolbar">
+          <div class="seg" id="chainTabs">
+            <button data-chain="INPUT" class="on">INPUT <span class="cnt" data-cnt="INPUT">0</span></button>
+            <button data-chain="FORWARD">FORWARD <span class="cnt" data-cnt="FORWARD">0</span></button>
+            <button data-chain="OUTPUT">OUTPUT <span class="cnt" data-cnt="OUTPUT">0</span></button>
+          </div>
+          <div class="search">
+            <svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.8"/><path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            <input type="text" id="search" placeholder="Поиск по правилам…">
+          </div>
+          <div class="spacer"></div>
+          <div class="policy">Политика по умолчанию: <b id="policyVal">DROP</b></div>
+        </div>
+
+        <div class="dirty" id="dirtyBar" hidden>
+          <svg viewBox="0 0 24 24" fill="none"><path d="M12 9v4m0 4h.01M10.3 3.9 2 18.1A2 2 0 0 0 3.7 21h16.6a2 2 0 0 0 1.7-2.9L13.7 3.9a2 2 0 0 0-3.4 0Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>
+          <div class="txt"><b id="dirtyCount">0</b> несохранённых изменений — они ещё не отправлены на сервер</div>
+          <div class="spacer"></div>
+          <button class="btn sm ghost" id="previewBtn">Показать команды</button>
+          <button class="btn sm" id="revertBtn">Отменить</button>
+          <button class="btn sm primary" id="applyBtn">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5 9-11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Применить на сервере
+          </button>
+        </div>
+
+        <div class="table-wrap">
+          <div class="table-scroll">
+            <div class="grid-cols thead">
+              <div></div>
+              <div class="c-num">#</div>
+              <div>Название</div>
+              <div>Источник</div>
+              <div>Назначение</div>
+              <div>Протокол</div>
+              <div>Действие</div>
+              <div class="c-tgl">Вкл.</div>
+              <div class="c-act"></div>
+            </div>
+            <div class="rows" id="rows"></div>
+          </div>
+          <div class="empty" id="emptyState" hidden>
+            <svg viewBox="0 0 24 24" fill="none"><path d="M4 7h16M4 12h16M4 17h9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            <div>В этой цепочке пока нет правил</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== SETTINGS VIEW ===== -->
+      <section class="view" id="view-settings" hidden>
+        <div class="page-head">
+          <div>
+            <h1>Настройки</h1>
+            <p>Подключение к серверу, параметры интерфейса и режим применения правил.</p>
+          </div>
+        </div>
+
+        <div class="cards">
+          <!-- SSH -->
+          <div class="card">
+            <header>
+              <span class="ci"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2.2" stroke="currentColor" stroke-width="1.7"/><path d="m7 9 3 3-3 3M12.5 15H17" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+              <div><h2>Подключение по SSH</h2><p>Сервер, к которому подключается «Рубеж» для управления фаерволом.</p></div>
+            </header>
+            <div class="body">
+              <div class="row2">
+                <div class="field"><label for="ssh-host">Хост / IP-адрес</label><input class="mono" type="text" id="ssh-host" value="192.0.2.10"></div>
+                <div class="field"><label for="ssh-port">Порт</label><input class="mono" type="number" id="ssh-port" value="22"></div>
+              </div>
+              <div class="field"><label for="ssh-user">Пользователь</label><input class="mono" type="text" id="ssh-user" value="netadmin"></div>
+              <div class="field">
+                <label>Аутентификация</label>
+                <div class="segsm" id="authSeg">
+                  <button class="on" data-auth="key">SSH-ключ</button>
+                  <button data-auth="password">Пароль</button>
+                </div>
+              </div>
+              <div class="field" id="authKeyField">
+                <label for="ssh-key">Путь к приватному ключу <span class="hint">на машине с «Рубежом»</span></label>
+                <input class="mono" type="text" id="ssh-key" value="~/.ssh/id_ed25519">
+              </div>
+              <div class="field" id="authPassField" hidden>
+                <label for="ssh-pass">Пароль SSH</label>
+                <input class="mono" type="password" id="ssh-pass" value="••••••••••" autocomplete="off">
+              </div>
+              <div class="toggle-row">
+                <div class="t-txt"><strong>Повышать права через sudo</strong><span>Команды iptables/nft выполняются как <span style="font-family:var(--mono)">sudo</span>.</span></div>
+                <label class="switch"><input type="checkbox" id="sudoToggle" checked><span class="track"></span><span class="knob"></span></label>
+              </div>
+              <div class="field" id="sudoPassField">
+                <label for="sudo-pass">Пароль sudo <span class="hint">оставьте пустым, если настроен NOPASSWD</span></label>
+                <input class="mono" type="password" id="sudo-pass" value="••••••••" autocomplete="off">
+              </div>
+            </div>
+            <div class="actions">
+              <button class="btn sm" id="testConnBtn">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+                Проверить подключение
+              </button>
+              <span class="saved-note" id="testNote"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5 9-11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Подключение успешно · sudo доступен</span>
+            </div>
+          </div>
+
+          <!-- Firewall detection -->
+          <div class="card">
+            <header>
+              <span class="ci"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3 4 6v5c0 4.2 3.2 7.8 8 9 4.8-1.2 8-4.8 8-9V6l-8-3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></span>
+              <div><h2>Фаервол на сервере</h2><p>«Рубеж» сам определяет установленный бэкенд и подстраивается под него.</p></div>
+            </header>
+            <div class="body">
+              <div class="toggle-row" style="margin-bottom:14px">
+                <div class="t-txt"><strong>Определять автоматически</strong><span>Опрашивает сервер и выбирает доступный инструмент.</span></div>
+                <label class="switch"><input type="checkbox" id="autoDetect" checked><span class="track"></span><span class="knob"></span></label>
+              </div>
+              <div class="detect" id="detectList">
+                <div class="det-item found" data-fw="iptables (legacy)">
+                  <span class="di-ic"><svg viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+                  <div class="di-main"><div class="n">iptables <span style="font-weight:400;color:var(--muted)">(legacy)</span></div><div class="d">iptables v1.8.7 · xtables</div></div>
+                  <span class="det-state">Активен</span>
+                </div>
+                <div class="det-item" data-fw="iptables-nft">
+                  <span class="di-ic"><svg viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+                  <div class="di-main"><div class="n">iptables-nft</div><div class="d">iptables поверх nftables</div></div>
+                  <span class="det-state">Найден</span>
+                </div>
+                <div class="det-item" data-fw="nftables">
+                  <span class="di-ic"><svg viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+                  <div class="di-main"><div class="n">nftables</div><div class="d">nft — не установлен</div></div>
+                  <span class="det-state">Нет</span>
+                </div>
+              </div>
+              <p style="font-size:12px;color:var(--muted);margin:13px 0 0">Нажмите на строку, чтобы выбрать бэкенд вручную (при выключенном авто-определении).</p>
+            </div>
+          </div>
+
+          <!-- GUI + apply -->
+          <div class="card">
+            <header>
+              <span class="ci"><svg viewBox="0 0 24 24" fill="none"><path d="M6 8h12M6 12h12M6 16h7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.5"/></svg></span>
+              <div><h2>Веб-интерфейс и применение</h2><p>Параметры самого приложения «Рубеж».</p></div>
+            </header>
+            <div class="body">
+              <div class="row2">
+                <div class="field"><label for="bind-addr">Адрес привязки GUI</label><input class="mono" type="text" id="bind-addr" value="0.0.0.0"></div>
+                <div class="field"><label for="gui-port">Порт GUI</label><input class="mono" type="number" id="gui-port" value="8555"></div>
+              </div>
+              <div class="field">
+                <label>Режим применения</label>
+                <div class="segsm" id="applySeg">
+                  <button class="on" data-mode="dry">Сухой прогон</button>
+                  <button data-mode="live">Применять сразу</button>
+                </div>
+                <span class="hint" id="applyHint">Показывает команды и не меняет правила на сервере, пока вы не подтвердите.</span>
+              </div>
+              <div class="toggle-row">
+                <div class="t-txt"><strong>Сохранять правила после применения</strong><span>Через <span style="font-family:var(--mono)">netfilter-persistent</span> — переживают перезагрузку.</span></div>
+                <label class="switch"><input type="checkbox" id="persistToggle" checked><span class="track"></span><span class="knob"></span></label>
+              </div>
+              <div class="toggle-row">
+                <div class="t-txt"><strong>Резервная копия перед изменением</strong><span>Снимок <span style="font-family:var(--mono)">iptables-save</span> с возможностью отката.</span></div>
+                <label class="switch"><input type="checkbox" id="backupToggle" checked><span class="track"></span><span class="knob"></span></label>
+              </div>
+            </div>
+            <div class="actions">
+              <button class="btn sm primary" id="saveSettingsBtn">Сохранить настройки</button>
+              <span class="saved-note" id="savedNote"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5 9-11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Настройки сохранены</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<!-- ===== RULE MODAL ===== -->
+<div class="overlay" id="ruleOverlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="ruleTitle">
+    <header>
+      <h3 id="ruleTitle">Новое правило</h3>
+      <button class="icon-btn" id="ruleClose" aria-label="Закрыть"><svg viewBox="0 0 24 24" fill="none"><path d="m6 6 12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+    </header>
+    <div class="mbody">
+      <div class="field"><label for="f-name">Название</label><input type="text" id="f-name" placeholder="Например: SSH-доступ из офиса"></div>
+      <div class="row2" style="grid-template-columns:1fr 1fr">
+        <div class="field"><label for="f-src">Источник</label><input class="mono" type="text" id="f-src" placeholder="0.0.0.0/0 или any"></div>
+        <div class="field"><label for="f-dst">Назначение</label><input class="mono" type="text" id="f-dst" placeholder="any"></div>
+      </div>
+      <div class="row2" style="grid-template-columns:1fr 1fr">
+        <div class="field"><label for="f-proto">Протокол</label>
+          <select id="f-proto"><option>tcp</option><option>udp</option><option>icmp</option><option value="any">any</option></select>
+        </div>
+        <div class="field"><label for="f-port">Порт(ы) <span class="hint">для tcp/udp</span></label><input class="mono" type="text" id="f-port" placeholder="22, 80, 443"></div>
+      </div>
+      <div class="row2" style="grid-template-columns:1fr 1fr">
+        <div class="field"><label for="f-target">Действие</label>
+          <select id="f-target"><option value="ACCEPT">ACCEPT — разрешить</option><option value="DROP">DROP — отбросить</option><option value="REJECT">REJECT — отклонить</option></select>
+        </div>
+        <div class="field"><label for="f-note">Комментарий</label><input type="text" id="f-note" placeholder="необязательно"></div>
+      </div>
+    </div>
+    <div class="mfoot">
+      <button class="btn ghost" id="ruleCancel">Отмена</button>
+      <button class="btn primary" id="ruleSave">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PREVIEW MODAL ===== -->
+<div class="overlay" id="cmdOverlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="cmdTitle">
+    <header>
+      <h3 id="cmdTitle">Команды для применения</h3>
+      <button class="icon-btn" id="cmdClose" aria-label="Закрыть"><svg viewBox="0 0 24 24" fill="none"><path d="m6 6 12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+    </header>
+    <div class="mbody">
+      <p style="margin:0 0 12px;font-size:12.5px;color:var(--muted)">Так «Рубеж» перестроит цепочку <b id="cmdChain" style="font-family:var(--mono);color:var(--ink)">INPUT</b> на сервере по SSH (sudo). Отключённые правила пропускаются.</p>
+      <pre class="cmd-pre" id="cmdPre"></pre>
+    </div>
+    <div class="mfoot">
+      <button class="btn ghost" id="cmdCopy">Скопировать</button>
+      <button class="btn primary" id="cmdCloseBtn">Закрыть</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5 9-11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="toastMsg"></span></div>
+
+<script>
+(function(){
+  "use strict";
+  var $ = function(s,r){return (r||document).querySelector(s);};
+  var $$ = function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s));};
+
+  /* ---------- demo data ---------- */
+  var seed = {
+    INPUT: [
+      {name:"Loopback", src:"lo", dst:"any", proto:"any", port:"", target:"ACCEPT", note:"внутренний интерфейс", on:true},
+      {name:"Установленные соединения", src:"any", dst:"any", proto:"any", port:"", target:"ACCEPT", note:"conntrack ESTABLISHED,RELATED", on:true},
+      {name:"SSH из офиса", src:"203.0.113.0/24", dst:"any", proto:"tcp", port:"22", target:"ACCEPT", note:"управление", on:true},
+      {name:"HTTP / HTTPS", src:"any", dst:"any", proto:"tcp", port:"80, 443", target:"ACCEPT", note:"веб-сервер", on:true},
+      {name:"Пинг (ICMP)", src:"any", dst:"any", proto:"icmp", port:"", target:"ACCEPT", note:"echo-request", on:true},
+      {name:"Старый VPN-шлюз", src:"198.51.100.7", dst:"any", proto:"udp", port:"1194", target:"ACCEPT", note:"выведен из эксплуатации", on:false},
+      {name:"Блокировка Telnet", src:"any", dst:"any", proto:"tcp", port:"23", target:"DROP", note:"", on:true}
+    ],
+    FORWARD: [
+      {name:"LAN → WAN", src:"10.0.0.0/8", dst:"any", proto:"any", port:"", target:"ACCEPT", note:"NAT наружу", on:true},
+      {name:"Гостевая сеть в интернет", src:"192.168.50.0/24", dst:"any", proto:"any", port:"", target:"ACCEPT", note:"изоляция от LAN", on:true},
+      {name:"Гости → LAN", src:"192.168.50.0/24", dst:"10.0.0.0/8", proto:"any", port:"", target:"REJECT", note:"запрет доступа к внутренней сети", on:true}
+    ],
+    OUTPUT: [
+      {name:"Разрешить весь исходящий", src:"any", dst:"any", proto:"any", port:"", target:"ACCEPT", note:"", on:true},
+      {name:"Блокировать SMTP наружу", src:"any", dst:"any", proto:"tcp", port:"25", target:"DROP", note:"анти-спам", on:false}
+    ]
+  };
+
+  var uid = 1;
+  function clone(data){
+    var out={};
+    Object.keys(data).forEach(function(c){
+      out[c]=data[c].map(function(r){var o={};for(var k in r)o[k]=r[k];o.id="r"+(uid++);return o;});
+    });
+    return out;
+  }
+  var state = clone(seed);       // working copy
+  var saved = JSON.stringify(state); // last "applied" snapshot
+  var chain = "INPUT";
+  var query = "";
+
+  /* ---------- helpers ---------- */
+  function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  function isAny(v){return !v || v==="any" || v==="0.0.0.0/0";}
+  function tgtClass(t){return t==="ACCEPT"?"accept":t==="DROP"?"drop":"reject";}
+
+  function dirty(){ return JSON.stringify(state) !== saved; }
+  function dirtyCount(){
+    if(!dirty()) return 0;
+    // rough count of changed/added/removed/reordered across chains
+    try{
+      var a=JSON.parse(saved), n=0;
+      Object.keys(state).forEach(function(c){
+        var os=a[c]||[], ns=state[c]||[];
+        var oi=os.map(function(r){return r.id;}).join(",");
+        var ni=ns.map(function(r){return r.id;}).join(",");
+        if(oi!==ni) n++;
+        ns.forEach(function(r){
+          var prev=os.filter(function(x){return x.id===r.id;})[0];
+          if(prev && JSON.stringify(prev)!==JSON.stringify(r)) n++;
+        });
+      });
+      return Math.max(n,1);
+    }catch(e){return 1;}
+  }
+
+  /* ---------- rendering ---------- */
+  var rowsEl = $("#rows"), emptyEl = $("#emptyState");
+
+  function updateCounts(){
+    $$("[data-cnt]").forEach(function(el){ el.textContent = state[el.getAttribute("data-cnt")].length; });
+  }
+
+  function renderDirty(){
+    var d = dirty();
+    $("#dirtyBar").hidden = !d;
+    $("#dirtyCount").textContent = dirtyCount();
+  }
+
+  function render(){
+    updateCounts();
+    renderDirty();
+    var list = state[chain];
+    rowsEl.innerHTML = "";
+    var shown = 0;
+    list.forEach(function(rule, i){
+      if(query){
+        var hay=(rule.name+" "+rule.src+" "+rule.dst+" "+rule.proto+" "+rule.port+" "+rule.target+" "+rule.note).toLowerCase();
+        if(hay.indexOf(query)===-1) return;
+      }
+      shown++;
+      var row = document.createElement("div");
+      row.className = "grid-cols rule-row" + (rule.on?"":" disabled");
+      row.setAttribute("data-id", rule.id);
+      var portTxt = (rule.proto==="tcp"||rule.proto==="udp") && rule.port ? ":"+esc(rule.port) : "";
+      var protoChip = isAny(rule.proto) ? '<span class="chip">any</span>' : '<span class="chip">'+esc(rule.proto)+portTxt+'</span>';
+      row.innerHTML =
+        '<div class="c-grip"><span class="grip" title="Перетащите для смены приоритета" data-grip>'+
+          '<svg viewBox="0 0 24 24" fill="none"><circle cx="9" cy="6" r="1.4" fill="currentColor"/><circle cx="15" cy="6" r="1.4" fill="currentColor"/><circle cx="9" cy="12" r="1.4" fill="currentColor"/><circle cx="15" cy="12" r="1.4" fill="currentColor"/><circle cx="9" cy="18" r="1.4" fill="currentColor"/><circle cx="15" cy="18" r="1.4" fill="currentColor"/></svg>'+
+        '</span></div>'+
+        '<div class="c-num"><span class="prio">'+(i+1)+'</span></div>'+
+        '<div><div class="r-name">'+esc(rule.name)+'</div>'+(rule.note?'<div class="r-note">'+esc(rule.note)+'</div>':'')+'</div>'+
+        '<div><span class="addr'+(isAny(rule.src)?' any':'')+'">'+(isAny(rule.src)?'любой':esc(rule.src))+'</span></div>'+
+        '<div><span class="addr'+(isAny(rule.dst)?' any':'')+'">'+(isAny(rule.dst)?'любое':esc(rule.dst))+'</span></div>'+
+        '<div>'+protoChip+'</div>'+
+        '<div><span class="tgt '+tgtClass(rule.target)+'">'+esc(rule.target)+'</span></div>'+
+        '<div class="c-tgl"><label class="switch"><input type="checkbox" data-toggle '+(rule.on?'checked':'')+'><span class="track"></span><span class="knob"></span></label></div>'+
+        '<div class="c-act">'+
+          '<button class="row-btn" data-edit title="Изменить"><svg viewBox="0 0 24 24" fill="none"><path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></button>'+
+          '<button class="row-btn del" data-del title="Удалить"><svg viewBox="0 0 24 24" fill="none"><path d="M5 7h14M10 7V5h4v2M8 7l1 12h6l1-12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'+
+        '</div>';
+      rowsEl.appendChild(row);
+    });
+    emptyEl.hidden = shown>0;
+  }
+
+  /* ---------- drag to reorder (priority) ---------- */
+  var drag = null;
+  function rowAfter(y){
+    var els = $$(".rule-row:not(.dragging)", rowsEl);
+    for(var i=0;i<els.length;i++){
+      var r = els[i].getBoundingClientRect();
+      if(y < r.top + r.height/2) return els[i];
+    }
+    return null;
+  }
+  rowsEl.addEventListener("pointerdown", function(e){
+    var grip = e.target.closest("[data-grip]");
+    if(!grip) return;
+    if(query){ toast("Очистите поиск, чтобы менять порядок"); return; }
+    e.preventDefault();
+    var row = grip.closest(".rule-row");
+    drag = {row:row, grip:grip};
+    row.classList.add("dragging");
+    try{ grip.setPointerCapture(e.pointerId); }catch(_){}
+  });
+  rowsEl.addEventListener("pointermove", function(e){
+    if(!drag) return;
+    e.preventDefault();
+    var after = rowAfter(e.clientY);
+    if(after == null) rowsEl.appendChild(drag.row);
+    else if(after !== drag.row) rowsEl.insertBefore(drag.row, after);
+  });
+  function endDrag(e){
+    if(!drag) return;
+    drag.row.classList.remove("dragging");
+    try{ drag.grip.releasePointerCapture(e.pointerId); }catch(_){}
+    // rebuild chain order from DOM
+    var order = $$(".rule-row", rowsEl).map(function(el){return el.getAttribute("data-id");});
+    var byId = {}; state[chain].forEach(function(r){byId[r.id]=r;});
+    var newList = order.map(function(id){return byId[id];}).filter(Boolean);
+    // keep any rows hidden by search in their relative place: if searching, skip (blocked earlier)
+    if(newList.length === state[chain].length) state[chain] = newList;
+    drag = null;
+    render();
+  }
+  rowsEl.addEventListener("pointerup", endDrag);
+  rowsEl.addEventListener("pointercancel", endDrag);
+
+  /* ---------- row interactions ---------- */
+  rowsEl.addEventListener("change", function(e){
+    var t = e.target.closest("[data-toggle]");
+    if(!t) return;
+    var id = t.closest(".rule-row").getAttribute("data-id");
+    var r = state[chain].filter(function(x){return x.id===id;})[0];
+    if(r){ r.on = t.checked; render(); }
+  });
+  rowsEl.addEventListener("click", function(e){
+    var row = e.target.closest(".rule-row"); if(!row) return;
+    var id = row.getAttribute("data-id");
+    if(e.target.closest("[data-del]")){
+      state[chain] = state[chain].filter(function(x){return x.id!==id;});
+      render(); toast("Правило удалено");
+    } else if(e.target.closest("[data-edit]")){
+      openRule(state[chain].filter(function(x){return x.id===id;})[0]);
+    }
+  });
+
+  /* ---------- chain tabs / search ---------- */
+  $("#chainTabs").addEventListener("click", function(e){
+    var b = e.target.closest("button[data-chain]"); if(!b) return;
+    $$("#chainTabs button").forEach(function(x){x.classList.remove("on");});
+    b.classList.add("on");
+    chain = b.getAttribute("data-chain");
+    render();
+  });
+  $("#search").addEventListener("input", function(e){ query = e.target.value.trim().toLowerCase(); render(); });
+
+  /* ---------- rule modal ---------- */
+  var editingId = null;
+  function openRule(rule){
+    editingId = rule ? rule.id : null;
+    $("#ruleTitle").textContent = rule ? "Изменить правило" : "Новое правило";
+    $("#f-name").value = rule ? rule.name : "";
+    $("#f-src").value = rule ? (rule.src==="any"?"":rule.src) : "";
+    $("#f-dst").value = rule ? (rule.dst==="any"?"":rule.dst) : "";
+    $("#f-proto").value = rule ? rule.proto : "tcp";
+    $("#f-port").value = rule ? rule.port : "";
+    $("#f-target").value = rule ? rule.target : "ACCEPT";
+    $("#f-note").value = rule ? rule.note : "";
+    $("#ruleOverlay").classList.add("show");
+    setTimeout(function(){$("#f-name").focus();},30);
+  }
+  function closeRule(){ $("#ruleOverlay").classList.remove("show"); }
+  $("#addBtn").addEventListener("click", function(){ openRule(null); });
+  $("#ruleClose").addEventListener("click", closeRule);
+  $("#ruleCancel").addEventListener("click", closeRule);
+  $("#ruleSave").addEventListener("click", function(){
+    var name = $("#f-name").value.trim();
+    if(!name){ $("#f-name").focus(); $("#f-name").style.outline="2px solid var(--danger)"; return; }
+    var data = {
+      name:name,
+      src:$("#f-src").value.trim()||"any",
+      dst:$("#f-dst").value.trim()||"any",
+      proto:$("#f-proto").value,
+      port:$("#f-port").value.trim(),
+      target:$("#f-target").value,
+      note:$("#f-note").value.trim()
+    };
+    if(editingId){
+      var r = state[chain].filter(function(x){return x.id===editingId;})[0];
+      if(r) for(var k in data) r[k]=data[k];
+    } else {
+      data.id="r"+(uid++); data.on=true; state[chain].push(data);
+    }
+    closeRule(); render();
+    toast(editingId?"Правило обновлено":"Правило добавлено");
+  });
+
+  /* ---------- apply / revert / preview ---------- */
+  $("#revertBtn").addEventListener("click", function(){
+    state = JSON.parse(saved);
+    render(); toast("Изменения отменены");
+  });
+  $("#applyBtn").addEventListener("click", function(){
+    var mode = $("#applySeg .on").getAttribute("data-mode");
+    if(mode==="dry"){ openPreview(); return; }
+    saved = JSON.stringify(state);
+    render(); toast("Правила применены на сервере · gw-01");
+  });
+
+  function buildCommands(c){
+    var lines = [];
+    lines.push({t:"cm", s:"# iptables-restore для цепочки "+c+" — выполняется по SSH под sudo"});
+    lines.push({t:"raw", s:"sudo iptables -F "+c});
+    state[c].forEach(function(r){
+      if(!r.on){ lines.push({t:"cm", s:"# (выкл.) "+r.name}); return; }
+      var parts = ["sudo iptables -A "+c];
+      if(!isAny(r.src)) parts.push("-s "+r.src);
+      if(!isAny(r.dst) && r.dst!=="any") parts.push("-d "+r.dst);
+      if(!isAny(r.proto)){
+        parts.push("-p "+r.proto);
+        if((r.proto==="tcp"||r.proto==="udp") && r.port){
+          var ports=r.port.replace(/\s+/g,"");
+          parts.push(ports.indexOf(",")>-1 ? "-m multiport --dports "+ports : "--dport "+ports);
+        }
+      }
+      parts.push("-j "+r.target);
+      if(r.note) parts.push('-m comment --comment "'+r.note.replace(/"/g,"")+'"');
+      lines.push({t:"rule", target:r.target, s:parts.join(" ")});
+    });
+    lines.push({t:"raw", s:"sudo iptables -P "+c+" DROP"});
+    if($("#persistToggle").checked) lines.push({t:"raw", s:"sudo netfilter-persistent save"});
+    return lines;
+  }
+  function highlight(line){
+    if(line.t==="cm") return '<span class="cm">'+esc(line.s)+'</span>';
+    var s = esc(line.s)
+      .replace(/(-[A-Za-z]+|--[a-z-]+)/g,'<span class="fl">$1</span>');
+    if(line.t==="rule"){
+      var cls = line.target==="ACCEPT"?"tg-a":"tg-d";
+      s = s.replace("-j "+line.target, '<span class="fl">-j</span> <span class="'+cls+'">'+line.target+'</span>');
+    }
+    return s;
+  }
+  function openPreview(){
+    $("#cmdChain").textContent = chain;
+    $("#cmdPre").innerHTML = buildCommands(chain).map(highlight).join("\n");
+    $("#cmdOverlay").classList.add("show");
+  }
+  $("#previewBtn").addEventListener("click", openPreview);
+  $("#cmdClose").addEventListener("click", function(){$("#cmdOverlay").classList.remove("show");});
+  $("#cmdCloseBtn").addEventListener("click", function(){$("#cmdOverlay").classList.remove("show");});
+  $("#cmdCopy").addEventListener("click", function(){
+    var txt = buildCommands(chain).map(function(l){return l.s;}).join("\n");
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt).then(function(){toast("Скопировано в буфер");},function(){toast("Не удалось скопировать");});
+    } else { toast("Копирование недоступно"); }
+  });
+
+  /* ---------- overlays: click outside / esc ---------- */
+  $$(".overlay").forEach(function(o){ o.addEventListener("click", function(e){ if(e.target===o) o.classList.remove("show"); }); });
+  document.addEventListener("keydown", function(e){ if(e.key==="Escape") $$(".overlay").forEach(function(o){o.classList.remove("show");}); });
+
+  /* ---------- view switching ---------- */
+  $$(".nav").forEach(function(n){
+    n.addEventListener("click", function(){
+      $$(".nav").forEach(function(x){x.classList.remove("active");});
+      n.classList.add("active");
+      var v = n.getAttribute("data-view");
+      $("#view-rules").hidden = v!=="rules";
+      $("#view-settings").hidden = v!=="settings";
+      $(".main").scrollTop = 0;
+    });
+  });
+
+  /* ---------- settings interactions ---------- */
+  $("#authSeg").addEventListener("click", function(e){
+    var b=e.target.closest("button"); if(!b) return;
+    $$("#authSeg button").forEach(function(x){x.classList.remove("on");}); b.classList.add("on");
+    var key = b.getAttribute("data-auth")==="key";
+    $("#authKeyField").hidden = !key; $("#authPassField").hidden = key;
+  });
+  $("#applySeg").addEventListener("click", function(e){
+    var b=e.target.closest("button"); if(!b) return;
+    $$("#applySeg button").forEach(function(x){x.classList.remove("on");}); b.classList.add("on");
+    $("#applyHint").textContent = b.getAttribute("data-mode")==="dry"
+      ? "Показывает команды и не меняет правила на сервере, пока вы не подтвердите."
+      : "Кнопка «Применить» сразу выполняет команды на сервере по SSH.";
+  });
+  $("#sudoToggle").addEventListener("change", function(){ $("#sudoPassField").style.opacity=this.checked?"1":".45"; });
+  $("#autoDetect").addEventListener("change", function(){
+    $("#detectList").style.opacity = this.checked ? "1" : ".6";
+  });
+  $("#detectList").addEventListener("click", function(e){
+    if($("#autoDetect").checked) return;
+    var it=e.target.closest(".det-item"); if(!it || it.getAttribute("data-fw")==="nftables") return;
+    $$(".det-item",$("#detectList")).forEach(function(x){x.classList.remove("found");x.querySelector(".det-state").textContent="Найден";});
+    it.classList.add("found"); it.querySelector(".det-state").textContent="Активен";
+    var fw=it.getAttribute("data-fw");
+    $("#fwBadge").lastChild.textContent = " "+fw;
+  });
+  $("#testConnBtn").addEventListener("click", function(){
+    var b=this; b.disabled=true; b.textContent="Проверка…";
+    setTimeout(function(){
+      b.disabled=false; b.innerHTML='<svg viewBox="0 0 24 24" fill="none"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg> Проверить подключение';
+      $("#testNote").classList.add("show");
+    },900);
+  });
+  $("#saveSettingsBtn").addEventListener("click", function(){
+    $("#savedNote").classList.add("show");
+    $("#connHost").textContent = "gw-01 · "+$("#ssh-host").value;
+    setTimeout(function(){$("#savedNote").classList.remove("show");},2200);
+    toast("Настройки сохранены");
+  });
+
+  /* ---------- theme ---------- */
+  $("#themeBtn").addEventListener("click", function(){
+    var root=document.documentElement;
+    var cur=root.getAttribute("data-theme");
+    var dark=cur ? cur==="dark" : window.matchMedia("(prefers-color-scheme:dark)").matches;
+    root.setAttribute("data-theme", dark?"light":"dark");
+  });
+
+  /* ---------- toast ---------- */
+  var toastT;
+  function toast(msg){
+    $("#toastMsg").textContent=msg;
+    var el=$("#toast"); el.classList.add("show");
+    clearTimeout(toastT); toastT=setTimeout(function(){el.classList.remove("show");},2200);
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>
